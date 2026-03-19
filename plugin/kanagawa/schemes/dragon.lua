@@ -40,6 +40,10 @@ return {
   quick_select_label_fg = { Color = "#C5C9C5" },
   quick_select_match_bg = { Color = "#FF9E3B" },
   quick_select_match_fg = { Color = "#C5C9C5" },
+  input_selector_label_bg = { AnsiColor = "Black" },
+  input_selector_label_fg = { Color = "#ffffff" },
+  launcher_label_bg = { AnsiColor = "Black" },
+  launcher_label_fg = { Color = "#ffffff" },
   visual_bell = "#0D0C0C",
   tab_bar = {
     background = "#0D0C0C",
