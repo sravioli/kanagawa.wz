@@ -157,6 +157,22 @@ describe("apply_to_config", function()
     assert.equal(api.lotus.foreground, config.colors.foreground)
   end)
 
+  it("preserves pre-existing config.colors keys", function()
+    local config = { colors = { custom_key = "#abcdef" } }
+    api.apply_to_config(config, { scheme = "wave" })
+    assert.equal("#abcdef", config.colors.custom_key)
+    assert.equal(api.wave.background, config.colors.background)
+  end)
+
+  it("deep-merges into pre-existing nested colors", function()
+    local config = {
+      colors = { tab_bar = { extra_field = "keep" } },
+    }
+    api.apply_to_config(config, { scheme = "wave" })
+    assert.equal("keep", config.colors.tab_bar.extra_field)
+    assert.equal(api.wave.tab_bar.background, config.colors.tab_bar.background)
+  end)
+
   it("errors on an invalid scheme name", function()
     assert.has_error(function()
       api.apply_to_config({}, { scheme = "nope" })

@@ -100,8 +100,9 @@ end
 -- Public: apply_to_config(config [, opts])
 -- ---------------------------------------------------------------------------
 
----Resolve a scheme (with optional overrides) and assign it to
----`config.colors`.
+---Resolve a scheme (with optional overrides) and merge it into
+---`config.colors`.  Any keys the user has already set in `config.colors`
+---that are **not** part of the resolved scheme are preserved.
 ---
 ---@param config table WezTerm config builder.
 ---@param opts? table Options table.
@@ -110,7 +111,8 @@ end
 function M.apply_to_config(config, opts)
   opts = opts or {}
   local name = opts.scheme or "wave"
-  config.colors = M.get(name, opts.overrides)
+  local scheme = M.get(name, opts.overrides)
+  config.colors = deep_merge(config.colors or {}, scheme)
 end
 
 return M
