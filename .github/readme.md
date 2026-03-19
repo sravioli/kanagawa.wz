@@ -40,9 +40,13 @@ local kanagawa = wezterm.plugin.require(
 ### apply_to_config
 
 The simplest way to use the plugin. Resolves a scheme (default: `"wave"`),
-optionally deep-merges user overrides, and merges the result into
-`config.colors`. Any keys you have already set in `config.colors` that are
-not part of the scheme are preserved.
+optionally deep-merges user overrides, registers the result in
+`config.color_schemes` under a display name (e.g. `"Kanagawa Wave"`), and
+sets `config.color_scheme` to that name.
+
+Because WezTerm's `color_scheme` takes precedence over `colors`, you can
+still use `config.colors` to layer additional per-key tweaks on top of the
+scheme.
 
 ```lua
 -- use the default wave scheme
@@ -59,12 +63,25 @@ kanagawa.apply_to_config(config, {
     tab_bar = { background = "#e0e0e0" },
   },
 })
+
+-- further per-key tweaks via config.colors still work
+config.colors = {
+  cursor_bg = "#ff0000",
+}
 ```
 
 | Option      | Type    | Default  | Description                                   |
 | ----------- | ------- | -------- | --------------------------------------------- |
 | `scheme`    | string? | `"wave"` | Scheme name: `"wave"`, `"lotus"`, `"dragon"`. |
 | `overrides` | table?  | `nil`    | Partial table deep-merged into the scheme.    |
+
+Display names registered in `config.color_schemes`:
+
+| Scheme   | Display name      |
+| -------- | ----------------- |
+| `wave`   | `Kanagawa Wave`   |
+| `lotus`  | `Kanagawa Lotus`  |
+| `dragon` | `Kanagawa Dragon` |
 
 ### get
 
@@ -114,15 +131,21 @@ Overrides use a **deep merge**:
 The base preset tables are **never mutated** by `get()` or
 `apply_to_config()`.
 
+> **How `apply_to_config` interacts with WezTerm's precedence** —
+> The plugin registers the resolved scheme in `config.color_schemes` and
+> sets `config.color_scheme`. Because WezTerm evaluates `color_scheme`
+> first and then applies `colors` on top, any keys you set in
+> `config.colors` act as overrides on the scheme.
+
 ## API reference
 
-| Export                                 | Description                                          |
-| -------------------------------------- | ---------------------------------------------------- |
-| `kanagawa.wave`                        | Base Wave preset (shared reference).                 |
-| `kanagawa.lotus`                       | Base Lotus preset (shared reference).                |
-| `kanagawa.dragon`                      | Base Dragon preset (shared reference).               |
-| `kanagawa.get(name, overrides?)`       | Return a fresh scheme table with optional overrides. |
-| `kanagawa.apply_to_config(cfg, opts?)` | Merge a resolved scheme into `cfg.colors`.           |
+| Export                                 | Description                                             |
+| -------------------------------------- | ------------------------------------------------------- |
+| `kanagawa.wave`                        | Base Wave preset (shared reference).                    |
+| `kanagawa.lotus`                       | Base Lotus preset (shared reference).                   |
+| `kanagawa.dragon`                      | Base Dragon preset (shared reference).                  |
+| `kanagawa.get(name, overrides?)`       | Return a fresh scheme table with optional overrides.    |
+| `kanagawa.apply_to_config(cfg, opts?)` | Register scheme in `cfg.color_schemes` and activate it. |
 
 ## License
 
