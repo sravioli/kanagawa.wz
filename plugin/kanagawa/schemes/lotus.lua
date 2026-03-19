@@ -1,5 +1,6 @@
 ---@module "kanagawa.schemes.lotus"
 
+---@type kanagawa.Scheme
 return {
   background = "#F2ECBC",
   foreground = "#545464",

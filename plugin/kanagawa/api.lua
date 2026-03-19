@@ -1,12 +1,90 @@
 ---@module "kanagawa.api"
 
+-- ---------------------------------------------------------------------------
+-- LuaLS type definitions (from WezTerm config.colors spec)
+-- ---------------------------------------------------------------------------
+
+---A WezTerm color reference: either a named `{ Color = "#rrggbb" }` or
+---an `{ AnsiColor = "Name" }` table.
+---@alias kanagawa.ColorRef { Color: string } | { AnsiColor: string }
+
+---Tab bar button styling (active_tab, inactive_tab, new_tab, and their
+---hover variants).
+---@class kanagawa.TabStyle
+---@field bg_color string
+---@field fg_color string
+---@field intensity? "Half"|"Normal"|"Bold"
+---@field underline? "None"|"Single"|"Double"
+---@field italic? boolean
+---@field strikethrough? boolean
+
+---The `tab_bar` sub-table inside `config.colors`.
+---@class kanagawa.TabBar
+---@field background string
+---@field inactive_tab_edge string
+---@field active_tab kanagawa.TabStyle
+---@field inactive_tab kanagawa.TabStyle
+---@field inactive_tab_hover kanagawa.TabStyle
+---@field new_tab kanagawa.TabStyle
+---@field new_tab_hover kanagawa.TabStyle
+
+---A complete WezTerm color scheme suitable for `config.colors`.
+---@class kanagawa.Scheme
+---@field background string
+---@field foreground string
+---@field cursor_bg string
+---@field cursor_fg string
+---@field cursor_border string
+---@field selection_fg string
+---@field selection_bg string
+---@field scrollbar_thumb string
+---@field split string
+---@field ansi string[]
+---@field brights string[]
+---@field indexed table<integer, string>
+---@field compose_cursor string
+---@field visual_bell string
+---@field copy_mode_active_highlight_bg kanagawa.ColorRef
+---@field copy_mode_active_highlight_fg kanagawa.ColorRef
+---@field copy_mode_inactive_highlight_bg kanagawa.ColorRef
+---@field copy_mode_inactive_highlight_fg kanagawa.ColorRef
+---@field quick_select_label_bg kanagawa.ColorRef
+---@field quick_select_label_fg kanagawa.ColorRef
+---@field quick_select_match_bg kanagawa.ColorRef
+---@field quick_select_match_fg kanagawa.ColorRef
+---@field input_selector_label_bg kanagawa.ColorRef  Nightly builds only.
+---@field input_selector_label_fg kanagawa.ColorRef  Nightly builds only.
+---@field launcher_label_bg kanagawa.ColorRef  Nightly builds only.
+---@field launcher_label_fg kanagawa.ColorRef  Nightly builds only.
+---@field tab_bar kanagawa.TabBar
+
+---Options for `apply_to_config`.
+---@class kanagawa.ApplyOpts
+---@field scheme? string Scheme name. Defaults to `"wave"`.
+---@field overrides? kanagawa.Scheme Partial overrides deep-merged into the scheme.
+
+---@alias kanagawa.SchemeName "wave"|"lotus"|"dragon"
+
+---Map internal scheme names to display names used in
+---`config.color_scheme` and `config.color_schemes`.
+---@type table<kanagawa.SchemeName, string>
+local display_names = {
+  wave = "Kanagawa Wave",
+  lotus = "Kanagawa Lotus",
+  dragon = "Kanagawa Dragon",
+}
+
+---@class kanagawa.Api
+---@field wave kanagawa.Scheme Base Wave preset (shared reference).
+---@field lotus kanagawa.Scheme Base Lotus preset (shared reference).
+---@field dragon kanagawa.Scheme Base Dragon preset (shared reference).
 local M = {}
 
 -- ---------------------------------------------------------------------------
 -- Internal: scheme registry
 -- ---------------------------------------------------------------------------
 
----@type table<string, table>
+---@type table<kanagawa.SchemeName, kanagawa.Scheme>
 local schemes = {
   wave = require "kanagawa.schemes.wave",
   lotus = require "kanagawa.schemes.lotus",
@@ -84,9 +162,9 @@ M.dragon = schemes.dragon
 ---Return a **new** scheme table, optionally deep-merged with user overrides.
 ---The base preset is never mutated.
 ---
----@param name string Scheme name: `"wave"`, `"lotus"`, or `"dragon"`.
----@param overrides? table Partial table deep-merged into the cloned scheme.
----@return table scheme A fresh table suitable for `config.colors`.
+---@param name kanagawa.SchemeName Scheme name: `"wave"`, `"lotus"`, or `"dragon"`.
+---@param overrides? kanagawa.Scheme Partial table deep-merged into the cloned scheme.
+---@return kanagawa.Scheme scheme A fresh table suitable for `config.colors`.
 function M.get(name, overrides)
   validate_scheme_name(name)
   local result = deep_clone(schemes[name])
@@ -100,19 +178,27 @@ end
 -- Public: apply_to_config(config [, opts])
 -- ---------------------------------------------------------------------------
 
----Resolve a scheme (with optional overrides) and merge it into
----`config.colors`.  Any keys the user has already set in `config.colors`
----that are **not** part of the resolved scheme are preserved.
+---Resolve a scheme (with optional overrides), register it in
+---`config.color_schemes` under its display name, and set
+---`config.color_scheme` to that name.
+---
+---This follows WezTerm's own precedence model: `color_scheme` wins over
+---`colors`, so the user can still layer extra per-key tweaks through
+---`config.colors` and they will act as overrides on top of the scheme.
 ---
 ---@param config table WezTerm config builder.
----@param opts? table Options table.
----  - `scheme`    (string?)  Scheme name. Defaults to `"wave"`.
----  - `overrides` (table?)   Partial overrides deep-merged into the scheme.
+---@param opts? kanagawa.ApplyOpts Options table.
 function M.apply_to_config(config, opts)
   opts = opts or {}
   local name = opts.scheme or "wave"
+  validate_scheme_name(name)
+
   local scheme = M.get(name, opts.overrides)
-  config.colors = deep_merge(config.colors or {}, scheme)
+  local label = display_names[name]
+
+  config.color_schemes = config.color_schemes or {}
+  config.color_schemes[label] = scheme
+  config.color_scheme = label
 end
 
 return M

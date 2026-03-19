@@ -1,5 +1,6 @@
 ---@module "kanagawa.schemes.dragon"
 
+---@type kanagawa.Scheme
 return {
   background = "#181616",
   foreground = "#C5C9C5",

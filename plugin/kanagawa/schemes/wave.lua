@@ -1,5 +1,6 @@
 ---@module "kanagawa.schemes.wave"
 
+---@type kanagawa.Scheme
 return {
   background = "#1F1F28",
   foreground = "#DCD7BA",

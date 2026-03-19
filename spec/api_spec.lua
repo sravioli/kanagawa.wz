@@ -249,63 +249,49 @@ end)
 -- ── apply_to_config ───────────────────────────────────────────────────
 
 describe("apply_to_config", function()
-  it("sets config.colors to the default (wave) scheme", function()
+  it("registers the default scheme and sets color_scheme", function()
     local config = {}
     api.apply_to_config(config)
-    assert.is_table(config.colors)
-    assert.is_true(deep_equal(config.colors, api.wave))
+    assert.equal("Kanagawa Wave", config.color_scheme)
+    assert.is_table(config.color_schemes)
+    assert.is_table(config.color_schemes["Kanagawa Wave"])
+    assert.is_true(deep_equal(config.color_schemes["Kanagawa Wave"], api.wave))
   end)
 
-  it("sets config.colors to a named scheme", function()
+  it("registers a named scheme with its display name", function()
     local config = {}
     api.apply_to_config(config, { scheme = "dragon" })
-    assert.is_true(deep_equal(config.colors, api.dragon))
+    assert.equal("Kanagawa Dragon", config.color_scheme)
+    assert.is_true(deep_equal(config.color_schemes["Kanagawa Dragon"], api.dragon))
   end)
 
-  it("applies overrides when provided", function()
+  it("applies overrides into the registered scheme", function()
     local config = {}
     api.apply_to_config(config, {
       scheme = "lotus",
       overrides = { background = "#000000" },
     })
-    assert.equal("#000000", config.colors.background)
-    assert.equal(api.lotus.foreground, config.colors.foreground)
+    assert.equal("Kanagawa Lotus", config.color_scheme)
+    assert.equal("#000000", config.color_schemes["Kanagawa Lotus"].background)
+    assert.equal(api.lotus.foreground, config.color_schemes["Kanagawa Lotus"].foreground)
   end)
 
-  it("preserves pre-existing config.colors keys", function()
+  it("does not touch config.colors", function()
     local config = { colors = { custom_key = "#abcdef" } }
     api.apply_to_config(config, { scheme = "wave" })
+    -- colors stays as the user left it
     assert.equal("#abcdef", config.colors.custom_key)
-    assert.equal(api.wave.background, config.colors.background)
+    assert.is_nil(config.colors.background)
   end)
 
-  it("deep-merges into pre-existing nested colors", function()
+  it("preserves pre-existing color_schemes entries", function()
     local config = {
-      colors = { tab_bar = { extra_field = "keep" } },
+      color_schemes = { ["My Other Theme"] = { background = "#111111" } },
     }
     api.apply_to_config(config, { scheme = "wave" })
-    assert.equal("keep", config.colors.tab_bar.extra_field)
-    assert.equal(api.wave.tab_bar.background, config.colors.tab_bar.background)
-  end)
-
-  it("scheme value wins over conflicting pre-existing value", function()
-    local config = { colors = { background = "#old_color" } }
-    api.apply_to_config(config, { scheme = "dragon" })
-    assert.equal(api.dragon.background, config.colors.background)
-  end)
-
-  it("preserves pre-existing colors AND applies overrides together", function()
-    local config = { colors = { custom_key = "#abcdef" } }
-    api.apply_to_config(config, {
-      scheme = "wave",
-      overrides = { background = "#000000" },
-    })
-    -- user's unrelated key survives
-    assert.equal("#abcdef", config.colors.custom_key)
-    -- override applied
-    assert.equal("#000000", config.colors.background)
-    -- rest of scheme preserved
-    assert.equal(api.wave.foreground, config.colors.foreground)
+    assert.is_table(config.color_schemes["My Other Theme"])
+    assert.equal("#111111", config.color_schemes["My Other Theme"].background)
+    assert.is_table(config.color_schemes["Kanagawa Wave"])
   end)
 
   it("errors on an invalid scheme name", function()
