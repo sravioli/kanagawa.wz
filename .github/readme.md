@@ -2,6 +2,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/sravioli/kanagawa.wz/tests.yaml?label=Tests&logo=Lua)](https://github.com/sravioli/kanagawa.wz/actions?workflow=tests)
 [![Lint](https://img.shields.io/github/actions/workflow/status/sravioli/kanagawa.wz/lint.yaml?label=Lint&logo=Lua)](https://github.com/sravioli/kanagawa.wz/actions?workflow=lint)
+[![Coverage](https://img.shields.io/coverallsCoverage/github/sravioli/kanagawa.wz?label=Coverage&logo=coveralls)](https://coveralls.io/github/sravioli/kanagawa.wz)
 
 [Kanagawa](https://github.com/rebelot/kanagawa.nvim)-inspired color schemes
 for [WezTerm](https://wezfurlong.org/wezterm/).
