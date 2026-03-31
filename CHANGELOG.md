@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [1.0.0](https://github.com/sravioli/kanagawa.wz/compare/a176bbb0aed6c303fc03b274c2a7c11d5f736ba1..1.0.0) - 2026-03-21
+#### Bug Fixes
+- (**cocogitto**) set correct repository name - ([a176bbb](https://github.com/sravioli/kanagawa.wz/commit/a176bbb0aed6c303fc03b274c2a7c11d5f736ba1)) - sravioli
+
+- - -
+
 ## [0.1.0](https://github.com/sravioli/wezterm/compare/01d238a002137b8c5f1b4ae25d5e06bf546ba09d..0.1.0) - 2026-03-19
 #### Features
 - add kanagawa schemes and api - ([d75c08e](https://github.com/sravioli/wezterm/commit/d75c08e90c66a311c049afd8dcab93598220ee44)) - sravioli
