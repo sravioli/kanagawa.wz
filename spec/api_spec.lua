@@ -186,10 +186,7 @@ describe("get with overrides", function()
     -- sibling key in active_tab preserved
     assert.equal(api.wave.tab_bar.active_tab.fg_color, result.tab_bar.active_tab.fg_color)
     -- sibling table in tab_bar preserved
-    assert.equal(
-      api.wave.tab_bar.inactive_tab.bg_color,
-      result.tab_bar.inactive_tab.bg_color
-    )
+    assert.equal(api.wave.tab_bar.inactive_tab.bg_color, result.tab_bar.inactive_tab.bg_color)
   end)
 
   it("partially overrides an array by index (ansi)", function()
