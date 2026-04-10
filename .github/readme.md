@@ -1,5 +1,6 @@
 # kanagawa.wz
 
+[![Awesome](https://awesome.re/mentioned-badge.svg)](https://github.com/michaelbrusegard/awesome-wezterm)
 [![Tests](https://img.shields.io/github/actions/workflow/status/sravioli/kanagawa.wz/tests.yaml?label=Tests&logo=Lua)](https://github.com/sravioli/kanagawa.wz/actions?workflow=tests)
 [![Lint](https://img.shields.io/github/actions/workflow/status/sravioli/kanagawa.wz/lint.yaml?label=Lint&logo=Lua)](https://github.com/sravioli/kanagawa.wz/actions?workflow=lint)
 [![Coverage](https://img.shields.io/coverallsCoverage/github/sravioli/kanagawa.wz?label=Coverage&logo=coveralls)](https://coveralls.io/github/sravioli/kanagawa.wz)
@@ -34,6 +35,17 @@ For a local checkout:
 local kanagawa = wezterm.plugin.require(
   "file:///" .. wezterm.config_dir .. "/plugins/kanagawa.wz"
 )
+```
+
+### Type annotations
+
+Full LuaCATS type annotations are available via
+[wezterm-types](https://github.com/DrKJeff16/wezterm-types). After installing
+the types, annotate the import to get autocompletion and type checking:
+
+```lua
+---@type Kanagawa
+local kanagawa = wezterm.plugin.require("https://github.com/sravioli/kanagawa.wz")
 ```
 
 ## Usage
