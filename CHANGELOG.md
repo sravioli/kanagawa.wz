@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [1.0.2](https://github.com/sravioli/kanagawa.wz/compare/2214a00dda5d261736903476d5f8dfc218bc8624..1.0.2) - 2026-04-10
+#### Features
+- streamline configuration files - ([2214a00](https://github.com/sravioli/kanagawa.wz/commit/2214a00dda5d261736903476d5f8dfc218bc8624)) - sravioli
+#### Documentation
+- update README with type annotations and additional badge - ([97524d9](https://github.com/sravioli/kanagawa.wz/commit/97524d98042e6fad73c27fa734f108d1a94f3245)) - sravioli
+
+- - -
+
 ## [1.0.1](https://github.com/sravioli/kanagawa.wz/compare/2214a00dda5d261736903476d5f8dfc218bc8624..1.0.1) - 2026-04-10
 #### Features
 - streamline configuration files - ([2214a00](https://github.com/sravioli/kanagawa.wz/commit/2214a00dda5d261736903476d5f8dfc218bc8624)) - sravioli
