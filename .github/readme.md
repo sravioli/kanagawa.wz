@@ -8,30 +8,23 @@
 [Kanagawa.nvim](https://github.com/rebelot/kanagawa.nvim) color schemes for
 [WezTerm](https://wezfurlong.org/wezterm/).
 
-The plugin ships three variants:
+Kanagawa ships three variants:
 
 | Variant    | Background | Description           |
 | ---------- | ---------- | --------------------- |
-| **wave**   | `#1F1F28`  | Default dark theme    |
-| **dragon** | `#181616`  | Darker, muted variant |
-| **lotus**  | `#F2ECBC`  | Light theme           |
+| `wave`     | `#1F1F28`  | Default dark theme    |
+| `dragon`   | `#181616`  | Darker, muted variant |
+| `lotus`    | `#F2ECBC`  | Light theme           |
 
 ## Installation
 
 ```lua
 local wezterm = require "wezterm"
+
+-- from git
 local kanagawa = wezterm.plugin.require "https://github.com/sravioli/kanagawa.wz"
 
-local config = wezterm.config_builder()
-
-kanagawa.apply_to_config(config)
-
-return config
-```
-
-For a local checkout:
-
-```lua
+-- from a local checkout
 local kanagawa = wezterm.plugin.require(
   "file:///" .. wezterm.config_dir .. "/plugins/kanagawa.wz"
 )
@@ -39,9 +32,9 @@ local kanagawa = wezterm.plugin.require(
 
 ### Type annotations
 
-The modules include LuaCATS annotations. After installing
+Kanagawa ships LuaCATS annotations. After installing
 [wezterm-types](https://github.com/DrKJeff16/wezterm-types), annotate the import
-to get autocompletion and type checking:
+to get completion and type checking:
 
 ```lua
 ---@type Kanagawa
@@ -147,7 +140,7 @@ Overrides use a deep merge:
 > `config.color_scheme`. WezTerm evaluates `color_scheme` first and applies
 > `colors` afterward, so any keys in `config.colors` override the scheme.
 
-## API reference
+## API
 
 | Export                                 | Description                                             |
 | -------------------------------------- | ------------------------------------------------------- |
@@ -159,5 +152,6 @@ Overrides use a deep merge:
 
 ## License
 
-Code is licensed under the [GNU General Public License v2](../LICENSE). Documentation
-is licensed under [Creative Commons Attribution-NonCommercial 4.0 International](../LICENSE-DOCS).
+Code is licensed under the [GNU General Public License v2](../LICENSE).
+Documentation is licensed under
+[Creative Commons Attribution-NonCommercial 4.0 International](../LICENSE-DOCS).
