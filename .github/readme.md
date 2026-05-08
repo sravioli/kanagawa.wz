@@ -5,10 +5,10 @@
 [![Lint](https://img.shields.io/github/actions/workflow/status/sravioli/kanagawa.wz/lint.yaml?label=Lint&logo=Lua)](https://github.com/sravioli/kanagawa.wz/actions?workflow=lint)
 [![Coverage](https://img.shields.io/coverallsCoverage/github/sravioli/kanagawa.wz?label=Coverage&logo=coveralls)](https://coveralls.io/github/sravioli/kanagawa.wz)
 
-[Kanagawa.nvim](https://github.com/rebelot/kanagawa.nvim) color schemes
-for [Wezterm](https://wezfurlong.org/wezterm/).
+[Kanagawa.nvim](https://github.com/rebelot/kanagawa.nvim) color schemes for
+[WezTerm](https://wezfurlong.org/wezterm/).
 
-Three variants are included:
+The plugin ships three variants:
 
 | Variant    | Background | Description           |
 | ---------- | ---------- | --------------------- |
@@ -39,9 +39,9 @@ local kanagawa = wezterm.plugin.require(
 
 ### Type annotations
 
-Full LuaCATS type annotations are available via
-[wezterm-types](https://github.com/DrKJeff16/wezterm-types). After installing
-the types, annotate the import to get autocompletion and type checking:
+The modules include LuaCATS annotations. After installing
+[wezterm-types](https://github.com/DrKJeff16/wezterm-types), annotate the import
+to get autocompletion and type checking:
 
 ```lua
 ---@type Kanagawa
@@ -52,10 +52,9 @@ local kanagawa = wezterm.plugin.require("https://github.com/sravioli/kanagawa.wz
 
 ### apply_to_config
 
-The simplest way to use the plugin. Resolves a scheme (default: `"wave"`),
-optionally deep-merges user overrides, registers the result in
-`config.color_schemes` under a display name (e.g. `"Kanagawa Wave"`), and
-sets `config.color_scheme` to that name.
+This is the usual entry point. It resolves a scheme (default: `"wave"`), applies
+any overrides, registers the result in `config.color_schemes`, and sets
+`config.color_scheme` to the matching display name.
 
 Because WezTerm's `color_scheme` takes precedence over `colors`, you can
 still use `config.colors` to layer additional per-key tweaks on top of the
@@ -98,8 +97,9 @@ Display names registered in `config.color_schemes`:
 
 ### get
 
-Returns a **new** scheme table every time, so you can safely modify the
-result. When overrides are provided they are deep-merged into the clone.
+Returns a new scheme table every time. You can modify the result without
+changing the shared presets. When you pass overrides, they are deep-merged into
+that copy.
 
 ```lua
 -- get a clean copy of the dragon scheme
@@ -120,9 +120,8 @@ config.colors = colors
 
 ### Direct preset access
 
-The base preset tables are also exported directly for quick read access.
-These are **shared references** — avoid mutating them. Use `get()` if you
-need a mutable copy.
+The base preset tables are also exported directly for quick read access. They
+are shared references, so avoid mutating them. Use `get()` when you need a copy.
 
 ```lua
 config.colors = kanagawa.wave
@@ -132,7 +131,7 @@ config.colors = kanagawa.dragon
 
 ## Override semantics
 
-Overrides use a **deep merge**:
+Overrides use a deep merge:
 
 - Nested tables (e.g. `tab_bar`, `active_tab`) are merged recursively.
   You only need to specify the keys you want to change.
@@ -141,14 +140,12 @@ Overrides use a **deep merge**:
   ANSI color; the remaining seven are preserved.
 - Unknown keys are passed through to WezTerm without validation.
 
-The base preset tables are **never mutated** by `get()` or
-`apply_to_config()`.
+`get()` and `apply_to_config()` never mutate the base preset tables.
 
-> **How `apply_to_config` interacts with WezTerm's precedence** —
-> The plugin registers the resolved scheme in `config.color_schemes` and
-> sets `config.color_scheme`. Because WezTerm evaluates `color_scheme`
-> first and then applies `colors` on top, any keys you set in
-> `config.colors` act as overrides on the scheme.
+> **How `apply_to_config` interacts with WezTerm's precedence**
+> The plugin registers the resolved scheme in `config.color_schemes` and sets
+> `config.color_scheme`. WezTerm evaluates `color_scheme` first and applies
+> `colors` afterward, so any keys in `config.colors` override the scheme.
 
 ## API reference
 
