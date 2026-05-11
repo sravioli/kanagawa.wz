@@ -88,6 +88,87 @@ Display names registered in `config.color_schemes`:
 | `lotus`  | `Kanagawa Lotus`  |
 | `dragon` | `Kanagawa Dragon` |
 
+### register
+
+Use `register()` when you want all Kanagawa variants available in
+`config.color_schemes` without activating one. You can then choose the active
+scheme yourself through `config.color_scheme`.
+
+```lua
+kanagawa.register(config)
+
+config.color_scheme = "Kanagawa Dragon"
+```
+
+You can apply overrides to every registered scheme, and add per-scheme
+overrides with `scheme_overrides`. Per-scheme overrides win over global
+overrides.
+
+```lua
+kanagawa.register(config, {
+  overrides = {
+    tab_bar = { background = "#000000" },
+  },
+  scheme_overrides = {
+    lotus = { background = "#ffffff" },
+  },
+})
+```
+
+| Option             | Type   | Default | Description                                      |
+| ------------------ | ------ | ------- | ------------------------------------------------ |
+| `overrides`        | table? | `nil`   | Partial table deep-merged into every scheme.     |
+| `scheme_overrides` | table? | `nil`   | Per-scheme overrides keyed by scheme name.       |
+
+### apply_by_appearance
+
+Use `apply_by_appearance()` when you want WezTerm's light/dark appearance to
+select the active Kanagawa variant. By default, light appearances use `lotus`,
+dark appearances use `wave`, and unknown appearances fall back to `wave`.
+
+```lua
+kanagawa.apply_by_appearance(config)
+```
+
+You can choose different schemes and provide role-based overrides:
+
+```lua
+kanagawa.apply_by_appearance(config, {
+  dark = "dragon",
+  light = "lotus",
+  fallback = "wave",
+  overrides = {
+    dark = {
+      tab_bar = { background = "#111111" },
+    },
+    light = {
+      tab_bar = { background = "#f5f0d0" },
+    },
+    fallback = {
+      tab_bar = { background = "#000000" },
+    },
+  },
+})
+```
+
+For tests or explicit selection, pass an `appearance` string. Strings
+containing `"light"` select the light role; strings containing `"dark"` select
+the dark role; anything else uses fallback.
+
+```lua
+kanagawa.apply_by_appearance(config, {
+  appearance = "Light",
+})
+```
+
+| Option       | Type    | Default   | Description                                      |
+| ------------ | ------- | --------- | ------------------------------------------------ |
+| `dark`       | string? | `"wave"`  | Scheme used for dark appearances.                |
+| `light`      | string? | `"lotus"` | Scheme used for light appearances.               |
+| `fallback`   | string? | `"wave"`  | Scheme used when appearance cannot be resolved.  |
+| `overrides`  | table?  | `nil`     | Role-based overrides keyed by `dark`/`light`/`fallback`. |
+| `appearance` | string? | `nil`     | Explicit appearance string, mostly useful in tests. |
+
 ### get
 
 Returns a new scheme table every time. You can modify the result without
@@ -133,7 +214,8 @@ Overrides use a deep merge:
   ANSI color; the remaining seven are preserved.
 - Unknown keys are passed through to WezTerm without validation.
 
-`get()` and `apply_to_config()` never mutate the base preset tables.
+`get()`, `register()`, `apply_to_config()`, and `apply_by_appearance()` never
+mutate the base preset tables.
 
 > **How `apply_to_config` interacts with WezTerm's precedence**
 > The plugin registers the resolved scheme in `config.color_schemes` and sets
@@ -148,7 +230,9 @@ Overrides use a deep merge:
 | `kanagawa.lotus`                       | Base Lotus preset (shared reference).                   |
 | `kanagawa.dragon`                      | Base Dragon preset (shared reference).                  |
 | `kanagawa.get(name, overrides?)`       | Return a fresh scheme table with optional overrides.    |
+| `kanagawa.register(cfg, opts?)`        | Register all schemes without activating one.            |
 | `kanagawa.apply_to_config(cfg, opts?)` | Register scheme in `cfg.color_schemes` and activate it. |
+| `kanagawa.apply_by_appearance(cfg, opts?)` | Activate a light/dark scheme based on appearance.       |
 
 ## License
 
