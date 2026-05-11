@@ -63,6 +63,25 @@
 ---@field scheme? string Scheme name. Defaults to `"wave"`.
 ---@field overrides? kanagawa.Scheme Partial overrides deep-merged into the scheme.
 
+---Options for `register`.
+---@class kanagawa.RegisterOpts
+---@field overrides? kanagawa.Scheme Partial overrides deep-merged into every scheme.
+---@field scheme_overrides? table<string, kanagawa.Scheme> Per-scheme overrides keyed by scheme name.
+
+---Role-based overrides for `apply_by_appearance`.
+---@class kanagawa.AppearanceOverrides
+---@field light? kanagawa.Scheme Overrides applied when the light role is selected.
+---@field dark? kanagawa.Scheme Overrides applied when the dark role is selected.
+---@field fallback? kanagawa.Scheme Overrides applied when the fallback role is selected.
+
+---Options for `apply_by_appearance`.
+---@class kanagawa.AppearanceApplyOpts
+---@field light? string Scheme name used for light appearances. Defaults to `"lotus"`.
+---@field dark? string Scheme name used for dark appearances. Defaults to `"wave"`.
+---@field fallback? string Scheme name used when appearance is unknown. Defaults to `"wave"`.
+---@field overrides? kanagawa.AppearanceOverrides Role-based overrides.
+---@field appearance? string Explicit appearance string for testing or manual selection.
+
 ---@alias kanagawa.SchemeName "wave"|"lotus"|"dragon"
 
 ---Map internal scheme names to display names used in
@@ -73,6 +92,9 @@ local display_names = {
   lotus = "Kanagawa Lotus",
   dragon = "Kanagawa Dragon",
 }
+
+---@type kanagawa.SchemeName[]
+local scheme_order = { "wave", "dragon", "lotus" }
 
 ---@class kanagawa.Api
 ---@field wave kanagawa.Scheme Base Wave preset (shared reference).
@@ -135,16 +157,95 @@ end
 table.sort(valid_names)
 
 ---@param name string
-local function validate_scheme_name(name)
+---@param level? integer
+local function validate_scheme_name(name, level)
   if not schemes[name] then
     error(
       ("kanagawa: invalid scheme %q — expected one of: %s"):format(
         tostring(name),
         table.concat(valid_names, ", ")
       ),
-      3
+      level or 3
     )
   end
+end
+
+---@class kanagawa.ResolvedScheme
+---@field label string
+---@field scheme kanagawa.Scheme
+
+---Resolve a scheme name into its WezTerm display label and cloned scheme.
+---@param name kanagawa.SchemeName
+---@param overrides? kanagawa.Scheme
+---@return kanagawa.ResolvedScheme
+local function resolve_scheme(name, overrides)
+  validate_scheme_name(name, 4)
+
+  local scheme = deep_clone(schemes[name])
+  if overrides then
+    deep_merge(scheme, overrides)
+  end
+
+  return {
+    label = display_names[name],
+    scheme = scheme,
+  }
+end
+
+---Combine global and specific overrides without mutating either input table.
+---@param global? kanagawa.Scheme
+---@param specific? kanagawa.Scheme
+---@return kanagawa.Scheme?
+local function merge_override_options(global, specific)
+  if not global then
+    return specific
+  end
+  if not specific then
+    return global
+  end
+
+  local merged = deep_clone(global)
+  deep_merge(merged, specific)
+  return merged
+end
+
+---Read the current WezTerm appearance if GUI APIs are available.
+---@return string?
+local function get_wezterm_appearance()
+  local ok, wezterm_module = pcall(require, "wezterm")
+  if not ok or type(wezterm_module) ~= "table" then
+    return nil
+  end
+
+  local gui = wezterm_module.gui
+  if type(gui) ~= "table" or type(gui.get_appearance) ~= "function" then
+    return nil
+  end
+
+  local appearance_ok, appearance = pcall(gui.get_appearance)
+  if not appearance_ok or type(appearance) ~= "string" then
+    return nil
+  end
+
+  return appearance
+end
+
+---@param appearance? string
+---@return "light"|"dark"|"fallback"
+local function classify_appearance(appearance)
+  if type(appearance) ~= "string" then
+    return "fallback"
+  end
+
+  local normalized = string.lower(appearance)
+  if normalized:find("light", 1, true) then
+    return "light"
+  end
+  if normalized:find("dark", 1, true) then
+    return "dark"
+  end
+
+  return "fallback"
 end
 
 -- ---------------------------------------------------------------------------
@@ -166,12 +267,37 @@ M.dragon = schemes.dragon
 ---@param overrides? kanagawa.Scheme Partial table deep-merged into the cloned scheme.
 ---@return kanagawa.Scheme scheme A fresh table suitable for `config.colors`.
 function M.get(name, overrides)
-  validate_scheme_name(name)
-  local result = deep_clone(schemes[name])
-  if overrides then
-    deep_merge(result, overrides)
+  return resolve_scheme(name, overrides).scheme
+end
+
+-- ---------------------------------------------------------------------------
+-- Public: register(config [, opts])
+-- ---------------------------------------------------------------------------
+
+---Register all Kanagawa schemes in `config.color_schemes` without activating
+---one through `config.color_scheme`.
+---
+---`opts.overrides` applies to every registered scheme. `opts.scheme_overrides`
+---can apply additional per-scheme overrides keyed by `wave`, `dragon`, or
+---`lotus`; per-scheme overrides win over global overrides.
+---
+---@param config table WezTerm config builder.
+---@param opts? kanagawa.RegisterOpts Options table.
+function M.register(config, opts)
+  opts = opts or {}
+  local scheme_overrides = opts.scheme_overrides or {}
+
+  for name in pairs(scheme_overrides) do
+    validate_scheme_name(name)
   end
-  return result
+
+  config.color_schemes = config.color_schemes or {}
+
+  for _, name in ipairs(scheme_order) do
+    local overrides = merge_override_options(opts.overrides, scheme_overrides[name])
+    local resolved = resolve_scheme(name, overrides)
+    config.color_schemes[resolved.label] = resolved.scheme
+  end
 end
 
 -- ---------------------------------------------------------------------------
@@ -191,14 +317,37 @@ end
 function M.apply_to_config(config, opts)
   opts = opts or {}
   local name = opts.scheme or "wave"
-  validate_scheme_name(name)
-
-  local scheme = M.get(name, opts.overrides)
-  local label = display_names[name]
+  local resolved = resolve_scheme(name, opts.overrides)
 
   config.color_schemes = config.color_schemes or {}
-  config.color_schemes[label] = scheme
-  config.color_scheme = label
+  config.color_schemes[resolved.label] = resolved.scheme
+  config.color_scheme = resolved.label
+end
+
+-- ---------------------------------------------------------------------------
+-- Public: apply_by_appearance(config [, opts])
+-- ---------------------------------------------------------------------------
+
+---Apply a scheme selected from WezTerm's current light/dark appearance.
+---
+---`opts.appearance` takes precedence and is intended for tests or explicit
+---manual selection. When it is omitted, this function uses
+---`wezterm.gui.get_appearance()` if available. Unknown or unavailable
+---appearances use the fallback scheme.
+---
+---@param config table WezTerm config builder.
+---@param opts? kanagawa.AppearanceApplyOpts Options table.
+function M.apply_by_appearance(config, opts)
+  opts = opts or {}
+  local appearance = opts.appearance or get_wezterm_appearance()
+  local role = classify_appearance(appearance)
+  local scheme = opts[role] or (role == "light" and "lotus" or "wave")
+  local overrides = opts.overrides and opts.overrides[role] or nil
+
+  M.apply_to_config(config, {
+    scheme = scheme,
+    overrides = overrides,
+  })
 end
 
 return M

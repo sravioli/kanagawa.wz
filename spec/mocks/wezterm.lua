@@ -18,5 +18,6 @@ local wezterm = {
 
 -- make globally accessible
 _G.wezterm = wezterm
+package.loaded.wezterm = wezterm
 
 return wezterm

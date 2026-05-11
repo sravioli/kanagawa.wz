@@ -2,6 +2,7 @@
 -- luacheck: globals describe it assert
 
 local api = require "kanagawa.api"
+local wezterm = require "wezterm"
 
 -- ── Helpers ────────────────────────────────────────────────────────────
 
@@ -47,6 +48,19 @@ local function collect_keys(t, prefix)
     end
   end
   return keys
+end
+
+---@param gui table|nil
+---@param fn function
+local function with_gui(gui, fn)
+  local original_gui = wezterm.gui
+  wezterm.gui = gui
+
+  local ok, err = pcall(fn)
+  wezterm.gui = original_gui
+  if not ok then
+    error(err, 0)
+  end
 end
 
 -- ── Top-level preset exports ──────────────────────────────────────────
@@ -294,6 +308,201 @@ describe("apply_to_config", function()
   it("errors on an invalid scheme name", function()
     assert.has_error(function()
       api.apply_to_config({}, { scheme = "nope" })
+    end)
+  end)
+end)
+
+-- ── register ─────────────────────────────────────────────────────────
+
+describe("register", function()
+  it("registers all schemes with their display names", function()
+    local config = {}
+    api.register(config)
+
+    assert.is_table(config.color_schemes)
+    assert.is_true(deep_equal(config.color_schemes["Kanagawa Wave"], api.wave))
+    assert.is_true(deep_equal(config.color_schemes["Kanagawa Dragon"], api.dragon))
+    assert.is_true(deep_equal(config.color_schemes["Kanagawa Lotus"], api.lotus))
+  end)
+
+  it("does not set color_scheme", function()
+    local config = {}
+    api.register(config)
+    assert.is_nil(config.color_scheme)
+  end)
+
+  it("preserves an existing color_scheme value", function()
+    local config = { color_scheme = "My Other Theme" }
+    api.register(config)
+    assert.equal("My Other Theme", config.color_scheme)
+  end)
+
+  it("preserves pre-existing color_schemes entries", function()
+    local config = {
+      color_schemes = { ["My Other Theme"] = { background = "#111111" } },
+    }
+
+    api.register(config)
+
+    assert.is_table(config.color_schemes["My Other Theme"])
+    assert.equal("#111111", config.color_schemes["My Other Theme"].background)
+    assert.is_table(config.color_schemes["Kanagawa Wave"])
+    assert.is_table(config.color_schemes["Kanagawa Dragon"])
+    assert.is_table(config.color_schemes["Kanagawa Lotus"])
+  end)
+
+  it("applies global overrides to every scheme", function()
+    local config = {}
+
+    api.register(config, {
+      overrides = {
+        tab_bar = { background = "#000000" },
+      },
+    })
+
+    assert.equal("#000000", config.color_schemes["Kanagawa Wave"].tab_bar.background)
+    assert.equal("#000000", config.color_schemes["Kanagawa Dragon"].tab_bar.background)
+    assert.equal("#000000", config.color_schemes["Kanagawa Lotus"].tab_bar.background)
+  end)
+
+  it("applies per-scheme overrides only to the named scheme", function()
+    local config = {}
+
+    api.register(config, {
+      scheme_overrides = {
+        lotus = { background = "#ffffff" },
+      },
+    })
+
+    assert.equal(api.wave.background, config.color_schemes["Kanagawa Wave"].background)
+    assert.equal(api.dragon.background, config.color_schemes["Kanagawa Dragon"].background)
+    assert.equal("#ffffff", config.color_schemes["Kanagawa Lotus"].background)
+  end)
+
+  it("lets per-scheme overrides win over global overrides", function()
+    local config = {}
+
+    api.register(config, {
+      overrides = { background = "#000000" },
+      scheme_overrides = {
+        dragon = { background = "#111111" },
+      },
+    })
+
+    assert.equal("#000000", config.color_schemes["Kanagawa Wave"].background)
+    assert.equal("#111111", config.color_schemes["Kanagawa Dragon"].background)
+    assert.equal("#000000", config.color_schemes["Kanagawa Lotus"].background)
+  end)
+
+  it("errors on an invalid scheme_overrides key", function()
+    assert.has_error(function()
+      api.register({}, {
+        scheme_overrides = {
+          invalid = { background = "#000000" },
+        },
+      })
+    end)
+  end)
+end)
+
+-- ── apply_by_appearance ──────────────────────────────────────────────
+
+describe("apply_by_appearance", function()
+  it("selects lotus for light appearance", function()
+    local config = {}
+
+    api.apply_by_appearance(config, { appearance = "Light" })
+
+    assert.equal("Kanagawa Lotus", config.color_scheme)
+    assert.is_true(deep_equal(config.color_schemes["Kanagawa Lotus"], api.lotus))
+  end)
+
+  it("selects wave for dark appearance by default", function()
+    local config = {}
+
+    api.apply_by_appearance(config, { appearance = "Dark" })
+
+    assert.equal("Kanagawa Wave", config.color_scheme)
+    assert.is_true(deep_equal(config.color_schemes["Kanagawa Wave"], api.wave))
+  end)
+
+  it("selects a configured dark scheme", function()
+    local config = {}
+
+    api.apply_by_appearance(config, {
+      appearance = "Dark",
+      dark = "dragon",
+    })
+
+    assert.equal("Kanagawa Dragon", config.color_scheme)
+    assert.is_true(deep_equal(config.color_schemes["Kanagawa Dragon"], api.dragon))
+  end)
+
+  it("classifies appearance case-insensitively", function()
+    local config = {}
+
+    api.apply_by_appearance(config, { appearance = "light high contrast" })
+
+    assert.equal("Kanagawa Lotus", config.color_scheme)
+  end)
+
+  it("uses fallback for unknown appearance", function()
+    local config = {}
+
+    api.apply_by_appearance(config, {
+      appearance = "NoPreference",
+      fallback = "dragon",
+    })
+
+    assert.equal("Kanagawa Dragon", config.color_scheme)
+  end)
+
+  it("uses fallback when the WezTerm GUI appearance is unavailable", function()
+    with_gui(nil, function()
+      local config = {}
+
+      api.apply_by_appearance(config, { fallback = "dragon" })
+
+      assert.equal("Kanagawa Dragon", config.color_scheme)
+    end)
+  end)
+
+  it("reads wezterm.gui.get_appearance when appearance is omitted", function()
+    with_gui({
+      get_appearance = function()
+        return "Light"
+      end,
+    }, function()
+      local config = {}
+
+      api.apply_by_appearance(config)
+
+      assert.equal("Kanagawa Lotus", config.color_scheme)
+    end)
+  end)
+
+  it("applies role-based overrides only to the selected role", function()
+    local config = {}
+
+    api.apply_by_appearance(config, {
+      appearance = "Dark",
+      overrides = {
+        dark = { background = "#000000" },
+        light = { background = "#ffffff" },
+        fallback = { background = "#111111" },
+      },
+    })
+
+    assert.equal("Kanagawa Wave", config.color_scheme)
+    assert.equal("#000000", config.color_schemes["Kanagawa Wave"].background)
+  end)
+
+  it("errors on an invalid selected scheme name", function()
+    assert.has_error(function()
+      api.apply_by_appearance({}, {
+        appearance = "Light",
+        light = "invalid",
+      })
     end)
   end)
 end)
