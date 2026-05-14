@@ -8,8 +8,7 @@
 ---an `{ AnsiColor = "Name" }` table.
 ---@alias kanagawa.ColorRef { Color: string } | { AnsiColor: string }
 
----Tab bar button styling (active_tab, inactive_tab, new_tab, and their
----hover variants).
+---Tab bar button style for active, inactive, new-tab, and hover states.
 ---@class kanagawa.TabStyle
 ---@field bg_color string
 ---@field fg_color string
@@ -58,23 +57,23 @@
 ---@field launcher_label_fg kanagawa.ColorRef  Nightly builds only.
 ---@field tab_bar kanagawa.TabBar
 
----Options for `apply_to_config`.
+---Options accepted by `apply_to_config`.
 ---@class kanagawa.ApplyOpts
 ---@field scheme? string Scheme name. Defaults to `"wave"`.
 ---@field overrides? kanagawa.Scheme Partial overrides deep-merged into the scheme.
 
----Options for `register`.
+---Options accepted by `register`.
 ---@class kanagawa.RegisterOpts
 ---@field overrides? kanagawa.Scheme Partial overrides deep-merged into every scheme.
 ---@field scheme_overrides? table<string, kanagawa.Scheme> Per-scheme overrides keyed by scheme name.
 
----Role-based overrides for `apply_by_appearance`.
+---Per-appearance overrides for `apply_by_appearance`.
 ---@class kanagawa.AppearanceOverrides
 ---@field light? kanagawa.Scheme Overrides applied when the light role is selected.
 ---@field dark? kanagawa.Scheme Overrides applied when the dark role is selected.
 ---@field fallback? kanagawa.Scheme Overrides applied when the fallback role is selected.
 
----Options for `apply_by_appearance`.
+---Options accepted by `apply_by_appearance`.
 ---@class kanagawa.AppearanceApplyOpts
 ---@field light? string Scheme name used for light appearances. Defaults to `"lotus"`.
 ---@field dark? string Scheme name used for dark appearances. Defaults to `"wave"`.
@@ -192,7 +191,7 @@ local function resolve_scheme(name, overrides)
   }
 end
 
----Combine global and specific overrides without mutating either input table.
+---Merge global and per-scheme overrides without mutating either input table.
 ---@param global? kanagawa.Scheme
 ---@param specific? kanagawa.Scheme
 ---@return kanagawa.Scheme?
@@ -260,7 +259,7 @@ M.dragon = schemes.dragon
 -- Public: get(name [, overrides])
 -- ---------------------------------------------------------------------------
 
----Return a **new** scheme table, optionally deep-merged with user overrides.
+---Return a fresh scheme table, optionally deep-merged with user overrides.
 ---The base preset is never mutated.
 ---
 ---@param name kanagawa.SchemeName Scheme name: `"wave"`, `"lotus"`, or `"dragon"`.
