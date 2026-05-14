@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [1.0.3](https://github.com/sravioli/kanagawa.wz/compare/cc1dbc9650e3a1ddadac9c86496afe9d3c6592ea..1.0.3) - 2026-05-14
+#### Features
+- (**api**) add registration and appearance helpers - ([ce8d83a](https://github.com/sravioli/kanagawa.wz/commit/ce8d83a7579f86ba2506d9dc7dda77472c9f023a)) - sravioli
+#### Documentation
+- (**github**) add pull request templates - ([fe20788](https://github.com/sravioli/kanagawa.wz/commit/fe20788b686b95cb3a5e429a3955c3b5e1076b47)) - sravioli
+- (**github**) polish issue templates - ([ba8a362](https://github.com/sravioli/kanagawa.wz/commit/ba8a36279e0e8f17078e89862960c7419770e611)) - sravioli
+- (**lua**) polish comment wording - ([07068b9](https://github.com/sravioli/kanagawa.wz/commit/07068b9783681ae0672d365088531acd6d15477f)) - sravioli
+- (**readme**) document registration and appearance helpers - ([7148ba0](https://github.com/sravioli/kanagawa.wz/commit/7148ba0837cf57fea10be9c2b1b8d55b6962c5d6)) - sravioli
+- (**readme**) improve readme consistency - ([34693db](https://github.com/sravioli/kanagawa.wz/commit/34693db4f8bb1af44a33f169807d874c6641f536)) - sravioli
+- (**readme**) improve readme clarity - ([cc1dbc9](https://github.com/sravioli/kanagawa.wz/commit/cc1dbc9650e3a1ddadac9c86496afe9d3c6592ea)) - sravioli
+
+- - -
+
 ## [1.0.2](https://github.com/sravioli/kanagawa.wz/compare/2214a00dda5d261736903476d5f8dfc218bc8624..1.0.2) - 2026-04-10
 #### Features
 - streamline configuration files - ([2214a00](https://github.com/sravioli/kanagawa.wz/commit/2214a00dda5d261736903476d5f8dfc218bc8624)) - sravioli
